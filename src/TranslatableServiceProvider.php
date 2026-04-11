@@ -1,0 +1,37 @@
+<?php
+
+namespace Relodev\Translatable;
+
+use Illuminate\Support\ServiceProvider;
+use Relodev\Translatable\Commands\MakeTranslatableCommand;
+
+class TranslatableServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__ . '/../config/translatable.php', 'translatable');
+    }
+
+    public function boot(): void
+    {
+        // Publier la config
+        $this->publishes([
+            __DIR__ . '/../config/translatable.php' => config_path('translatable.php'),
+        ], 'translatable-config');
+
+        // Publier les stubs de migration
+        $this->publishes([
+            __DIR__ . '/../database/stubs' => base_path('stubs'),
+        ], 'translatable-stubs');
+
+        // Publier les dossiers lang vides
+        $this->publishes([
+            __DIR__ . '/../lang' => lang_path(),
+        ], 'translatable-lang');
+
+        // Commandes artisan
+        if ($this->app->runningInConsole()) {
+            $this->commands([MakeTranslatableCommand::class]);
+        }
+    }
+}
