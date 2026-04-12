@@ -3,7 +3,6 @@
 namespace Relodev\Translatable\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 class MakeTranslatableCommand extends Command
 {
@@ -15,13 +14,24 @@ class MakeTranslatableCommand extends Command
         $table = $this->argument('table');
         $columns = $this->argument('columns');
         $locales = config('translatable.supported_locales', ['fr', 'en']);
+        $defaultLocale = config('translatable.fallback_locale', 'fr');
+
+        // Seules les locales non-défaut génèrent une colonne
+        // car le champ de base (ex: "note") sert déjà de version par défaut
+        $nonDefaultLocales = array_filter($locales, fn($l) => $l !== $defaultLocale);
 
         $fields = '';
+        $dropList = [];
+
         foreach ($columns as $col) {
-            foreach ($locales as $locale) {
-                $fields .= "\n            \$table->text('{$col}_{$locale}')->nullable();";
+            foreach ($nonDefaultLocales as $locale) {
+                $colName = "{$col}_{$locale}";
+                $fields .= "\n            \$table->text('{$colName}')->nullable();";
+                $dropList[] = "'{$colName}'";
             }
         }
+
+        $dropColumns = implode(', ', $dropList);
 
         $stub = <<<PHP
 <?php
@@ -39,7 +49,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('{$table}', function (Blueprint \$table) {
-            // drop columns
+            \$table->dropColumn([{$dropColumns}]);
         });
     }
 };
@@ -49,5 +59,6 @@ PHP;
         file_put_contents($filename, $stub);
 
         $this->info("Migration créée : {$filename}");
+        $this->line("Colonnes ajoutées : {$dropColumns}");
     }
 }
