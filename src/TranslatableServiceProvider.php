@@ -42,6 +42,7 @@ class TranslatableServiceProvider extends ServiceProvider
 
         // Enregistrer le middleware globalement
         $this->app[Kernel::class]->pushMiddleware(SetLocale::class);
+        $this->app['router']->pushMiddlewareToGroup('web', SetLocale::class);
 
         // Commandes artisan
         if ($this->app->runningInConsole()) {
