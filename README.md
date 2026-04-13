@@ -95,7 +95,7 @@ php artisan translatable:migration {table} {colonnes...}
 Exemple :
 
 ```bash
-php artisan translatable:migration categories contenu note
+php artisan translatable:migration categories name description
 ```
 
 Migration générée :
