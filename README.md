@@ -168,12 +168,17 @@ lang/
 ```blade
 {{ __('accueil/faq.no_faqs') }}
 ```
+## ⚠️ Important --- Logiques métier (create & update)
 
-## Méthodes disponibles sur les modèles
+Avec l'introduction de la gestion automatique des traductions, vous
+devez adapter vos logiques métier lors des opérations de création
+(create) et de mise à jour (update).
 
-| Méthode | Description |
-|---------|-------------|
-| `$model->champ` | Retourne la valeur dans la locale active |
+-   Le champ principal (ex: `name`) = valeur par défaut
+-   Les champs `_en` = traductions
+
+👉 Le package gère l'affichage automatiquement, mais la cohérence des
+données reste sous votre responsabilité.
 
 ## Logique de résolution
 
