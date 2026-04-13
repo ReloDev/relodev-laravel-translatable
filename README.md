@@ -9,6 +9,8 @@ Le package repose sur deux piliers :
 - **Vues & messages** : traduction classique via les fichiers `lang/fr/` et `lang/en/` de Laravel
 - **Données dynamiques** : colonnes supplémentaires en base de données (`champ_en`) et un trait Eloquent qui retourne automatiquement la bonne valeur selon la locale active
 
+Le package inclut un **middleware automatique** qui détecte et applique la langue active sans aucune configuration supplémentaire.
+
 ## Prérequis
 
 - PHP 8.1+
@@ -20,7 +22,7 @@ Le package repose sur deux piliers :
 composer require relodev/laravel-relodevtranslatable
 ```
 
-Le ServiceProvider est auto-découvert par Laravel, aucune configuration manuelle nécessaire.
+Le ServiceProvider et le middleware sont auto-enregistrés par Laravel, aucune configuration manuelle nécessaire.
 
 ## Configuration
 
@@ -42,14 +44,47 @@ return [
 | Clé | Description |
 |-----|-------------|
 | `supported_locales` | Langues supportées par le package |
-| `fallback_locale` | Langue utilisée si la traduction active est vide |
+| `fallback_locale` | Langue utilisée si aucune locale active n'est détectée |
+
+## Gestion de la langue active
+
+Le middleware inclus dans le package détecte automatiquement la langue à appliquer selon cet ordre de priorité :
+
+```
+1. Segment de route   → /fr/... ou /en/...
+2. Session            → définie via le bouton de switch
+3. Fallback config    → valeur de fallback_locale
+```
+
+Aucune modification du `.env` n'est nécessaire.
+
+### Bouton de switch de langue
+
+Ajoutez cette route dans `routes/web.php` :
+
+```php
+Route::get('/langue/{locale}', function ($locale) {
+    $locales = config('translatable.supported_locales', ['fr', 'en']);
+    if (in_array($locale, $locales)) {
+        session(['locale' => $locale]);
+    }
+    return back();
+})->name('langue.switch');
+```
+
+Dans vos vues :
+
+```blade
+<a href="{{ route('langue.switch', 'fr') }}">FR</a>
+<a href="{{ route('langue.switch', 'en') }}">EN</a>
+```
 
 ## Utilisation
 
 ### 1. Générer la migration
 
 La commande artisan génère automatiquement la migration qui ajoute les colonnes traduites.
-Le champ de base (ex: `note`) sert de version par défaut (français), seule la colonne `_en` est créée.
+Le champ de base (ex: `note`) sert de version par défaut (français), seule la colonne `_en` est créée avec le même type et les mêmes attributs que la colonne source.
 
 ```bash
 php artisan translatable:migration {table} {colonnes...}
@@ -65,7 +100,7 @@ Migration générée :
 
 ```php
 $table->text('contenu_en')->nullable();
-$table->text('note_en')->nullable();
+$table->integer('note_en');
 ```
 
 Puis :
@@ -82,7 +117,7 @@ php artisan migrate
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use TonVendor\Translatable\Traits\HasTranslation;
+use Relodev\Translatable\Traits\HasTranslation;
 
 class Commentaire extends Model
 {
@@ -138,33 +173,6 @@ lang/
 {{ __('accueil/faq.no_faqs') }}
 ```
 
-### 5. Changer la langue
-
-Via un middleware :
-
-```php
-public function handle($request, $next)
-{
-    $locale = $request->segment(1); // /fr/... ou /en/...
-
-    if (in_array($locale, ['fr', 'en'])) {
-        app()->setLocale($locale);
-    }
-
-    return $next($request);
-}
-```
-
-Via une route de switch :
-
-```php
-Route::get('/langue/{locale}', function ($locale) {
-    session(['locale' => $locale]);
-    app()->setLocale($locale);
-    return back();
-});
-```
-
 ## Méthodes disponibles sur les modèles
 
 | Méthode | Description |
@@ -183,11 +191,34 @@ Quand vous accédez à `$model->note`, le trait suit cet ordre :
 3. note                   → valeur de base en dernier recours
 ```
 
+## Structure du package
+
+```
+src/
+├── Traits/
+│   └── HasTranslation.php
+├── Commands/
+│   └── MakeTranslatableCommand.php
+├── Middleware/
+│   └── SetLocale.php
+└── TranslatableServiceProvider.php
+config/
+└── translatable.php
+lang/
+├── fr/
+└── en/
+```
+
 ## Changelog
+
+### v1.0.3
+- Ajout : middleware `SetLocale` auto-enregistré, gestion de la locale via route, session et fallback config
+- Ajout : création automatique des dossiers `lang/fr/` et `lang/en/` à l'installation
 
 ### v1.0.2
 - Fix : la migration ne génère plus la colonne `_fr` (redondante avec le champ de base)
 - Fix : le `down()` de la migration supprime désormais les colonnes correctement
+- Fix : la migration détecte et respecte le type et le nullable de la colonne source
 
 ### v1.0.1
 - Fix : support élargi aux projets Laravel 9
