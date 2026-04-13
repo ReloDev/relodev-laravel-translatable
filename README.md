@@ -19,7 +19,7 @@ Le package inclut un **middleware automatique** qui détecte et applique la lang
 ## Installation
 
 ```bash
-composer require relodev/laravel-relodevtranslatable
+composer require relodev/laravel-translatable
 ```
 
 Le ServiceProvider et le middleware sont auto-enregistrés par Laravel, aucune configuration manuelle nécessaire.
