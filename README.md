@@ -67,16 +67,18 @@ Route::get('/langue/{locale}', function ($locale) {
     $locales = config('translatable.supported_locales', ['fr', 'en']);
     if (in_array($locale, $locales)) {
         session(['locale' => $locale]);
+        app()->setLocale($locale);
     }
+
     return back();
-})->name('langue.switch');
+})->name('lang.switch');
 ```
 
 Dans vos vues :
 
 ```blade
-<a href="{{ route('langue.switch', 'fr') }}">FR</a>
-<a href="{{ route('langue.switch', 'en') }}">EN</a>
+<a href="{{ route('lang.switch', 'fr') }}">FR</a>
+<a href="{{ route('lang.switch', 'en') }}">EN</a>
 ```
 
 ## Utilisation
@@ -100,9 +102,12 @@ Migration générée :
 
 ```php
 $table->text('contenu_en')->nullable();
-$table->integer('note_en');
+$table->text('note_en')->nullable;
 ```
 
+```
+NB : Les champs des migrations générés auront toujours pour type text et seront toujours nullable
+```
 Puis :
 
 ```bash
