@@ -95,14 +95,14 @@ php artisan translatable:migration {table} {colonnes...}
 Exemple :
 
 ```bash
-php artisan translatable:migration commentaires contenu note
+php artisan translatable:migration categories contenu note
 ```
 
 Migration générée :
 
 ```php
-$table->text('contenu_en')->nullable();
-$table->text('note_en')->nullable;
+$table->text('name_en')->nullable();
+$table->text('description_en')->nullable;
 ```
 
 ```
@@ -124,21 +124,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Relodev\Translatable\Traits\HasTranslation;
 
-class Commentaire extends Model
+class category extends Model
 {
     use HasTranslation;
 
     protected $fillable = [
-        'contenu',
-        'contenu_en',
-        'note',
-        'note_en',
+        'name',
+        'name_en',
+        'description',
+        'description_en',
     ];
 
     // Champs à traduire automatiquement
     protected $translatable = [
-        'contenu',
-        'note',
+        'name',
+        'description',
     ];
 }
 ```
@@ -150,14 +150,6 @@ class Commentaire extends Model
 {{ $commentaire->contenu }}
 {{ $commentaire->note }}
 
-{{-- Valeur brute pour les formulaires d'édition --}}
-{{ $commentaire->getRawAttribute('contenu', 'fr') }}
-{{ $commentaire->getRawAttribute('contenu', 'en') }}
-
-{{-- Vérifier si une traduction existe --}}
-@if($commentaire->hasTranslation('contenu', 'en'))
-    <span class="badge">EN</span>
-@endif
 ```
 
 ### 4. Traductions statiques (vues, messages)
@@ -183,8 +175,6 @@ lang/
 | Méthode | Description |
 |---------|-------------|
 | `$model->champ` | Retourne la valeur dans la locale active |
-| `$model->getRawAttribute('champ', 'en')` | Retourne la valeur brute d'une locale précise |
-| `$model->hasTranslation('champ', 'en')` | Vérifie si une traduction existe pour ce champ |
 
 ## Logique de résolution
 
