@@ -144,11 +144,10 @@ class category extends Model
 ```
 
 ### 3. Affichage dans les vues
-
 ```blade
 {{-- Retourne automatiquement la valeur selon la locale active --}}
-{{ $commentaire->contenu }}
-{{ $commentaire->note }}
+{{ $category->name }}
+{{ $category->description }}
 
 ```
 
