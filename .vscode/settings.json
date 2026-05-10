@@ -1,0 +1,6 @@
+{
+    "powerquery.client.additionalSymbolsDirectories": [
+        "f:/Package/laravel-translatable/.vscode/excel-pq-symbols",
+        "f:/Aurel/Package/laravel-translatable/.vscode/excel-pq-symbols"
+    ]
+}

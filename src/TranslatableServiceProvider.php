@@ -5,6 +5,8 @@ namespace Relodev\Translatable;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Http\Kernel;
 use Relodev\Translatable\Commands\MakeTranslatableCommand;
+use Relodev\Translatable\Commands\AddLocaleCommand;
+use Relodev\Translatable\Commands\ListLocalesCommand;
 use Relodev\Translatable\Middleware\SetLocale;
 
 class TranslatableServiceProvider extends ServiceProvider
@@ -26,14 +28,17 @@ class TranslatableServiceProvider extends ServiceProvider
             __DIR__ . '/../database/stubs' => base_path('stubs'),
         ], 'translatable-stubs');
 
-        // Publier les dossiers lang vides
+        // Publier les dossiers lang
         $this->publishes([
             __DIR__ . '/../lang' => lang_path(),
         ], 'translatable-lang');
 
-        // Créer automatiquement les dossiers lang/fr et lang/en
-        $locales = config('translatable.supported_locales', ['fr', 'en']);
-        foreach ($locales as $locale) {
+        // Créer automatiquement les dossiers lang/{locale} pour toutes les locales configurées
+        $primary   = config('translatable.primary_locale', 'fr');
+        $secondary = config('translatable.secondary_locales', []);
+        $all       = array_unique(array_merge([$primary], $secondary));
+
+        foreach ($all as $locale) {
             $path = lang_path($locale);
             if (!is_dir($path)) {
                 mkdir($path, 0755, true);
@@ -46,7 +51,11 @@ class TranslatableServiceProvider extends ServiceProvider
 
         // Commandes artisan
         if ($this->app->runningInConsole()) {
-            $this->commands([MakeTranslatableCommand::class]);
+            $this->commands([
+                MakeTranslatableCommand::class,
+                AddLocaleCommand::class,
+                ListLocalesCommand::class,
+            ]);
         }
     }
 }
